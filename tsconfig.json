@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "noImplicitAny": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "removeComments": true,
+        "sourceMap": true,
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "target": "ESNext",
+        "module": "ESNext",
+        "allowJs": true,
+        "paths": {
+            "@helpers/*": [ "helpers/*" ],
+            "@styles/*": [ "styles/*" ],
+            "@logic/*": [ "logic/*" ],
+        }
+    },
+    "include": [ "./src/**/*.ts" ],
+    "exclude": [ "node_modules" ],
+}
