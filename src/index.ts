@@ -1,19 +1,29 @@
 import "@styles/index.scss";
 
-import { Camera, Renderer } from "@logic/graphics";
+import { JobOperation, Scheduler } from "@logic/scheduler";
+import { Scene } from "@logic/graphics";
+import { Rectangle } from "@logic/graphics/objects/Rectangle";
 
-const canvas = document.getElementById("frame") as HTMLCanvasElement;
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const scheduler = new Scheduler();
+scheduler.start();
 
-const renderer = new Renderer();
-renderer.init(canvas).then(ctx => {
-    const camera = new Camera(ctx);
+const scene = new Scene();
+scene.init(document.getElementById("frame") as HTMLCanvasElement).then(async () => {
+    const rect = new Rectangle(scene);
+    rect.visible = true;
+    rect.position = [10, 10];
+    rect.size = [100, 100];
+    await rect.allocate();
 
-    // TODO: we need a task scheduler for this
-    setInterval(() => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        camera.render();
-    }, 0);
+    scene.objects.push(rect);
+    scheduler.schedule(Scheduler.createJob("render", async () => {
+        await scene.render();
+        return JobOperation.Resume;
+    }));
+
+    // window mouse event
+    window.addEventListener("mousemove", (ev) => {
+        rect.position = [ev.clientX, ev.clientY];
+        rect.update();
+    });
 });

@@ -47,23 +47,22 @@ export interface Thenable<T> {
 }
 
 /**
- * Provides an interface for resolving a promise from external scopes.
- * This is especially useful for resolving promises in classes.
+ * Provides a toolset for wrapping a promise.
  * 
  * @implements {Thenable<T>}
  */
-export class OuterPromise<T> implements Thenable<T> {
+export class PromiseWrapper<T> implements Thenable<T> {
     private promise: Promise<T>;
 
     /**
      * Method that resolves the inner promise.
      */
-    public resolve!: Resolver<T>;
+    protected _resolve!: Resolver<T>;
 
     /**
      * Method that rejects the inner promise.
      */
-    public reject!: Rejector;
+    protected _reject!: Rejector;
 
     /**
      * The value that the promise was resolved with.
@@ -73,25 +72,46 @@ export class OuterPromise<T> implements Thenable<T> {
      */
     public value!: T;
 
+    // Set whenever the promise is finished.
+    private _finished: boolean = false;
+
+    /**
+     * Whether or not the promise is finished.
+     */
+    public get finished(): boolean {
+        return this._finished;
+    }
+
     /**
      * Creates a new OuterPromise.
      */
     public constructor() {
         // Create a new promise, then assign the resolve/reject methods to the class.
+        // Wait for the promise to resolve, then set resolved and marshal the value.
+        // Getting the promise to propagate errors correctly is annoying...
         this.promise = new Promise<T>((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
+            this._resolve = resolve;
+            this._reject = reject;
+        }).then(this.middleMarshal.bind(this)).catch((err: any) => {
+            this.middleMarshal.bind(this, err)();
+            throw err;
         });
-        
-        // Wait for the promise to resolve, then marshal the value.
-        this.promise.then(value => this.value = value);
+    }
+
+    // Wait for resolve/reject then marshal the value and set finished.
+    private middleMarshal(value: any): T {
+        this._finished = true;
+        this.value = value;
+        return value;
     }
 
     /**
      * @see {Promise.then}
      * @see {Thenable.then}
      */
-    public then<TResult1 = T, TResult2 = never>(onfulfilled?: FulfillmentCallback<T, TResult1>, onrejected?: RejectionCallback<TResult2>): Promise<TResult1 | TResult2> {
+    public then<TResult1 = T, TResult2 = never>(
+          onfulfilled?: FulfillmentCallback<T, TResult1>,
+          onrejected?: RejectionCallback<TResult2>): Promise<TResult1 | TResult2> {
         return this.promise.then(onfulfilled, onrejected);
     }
 
@@ -108,4 +128,16 @@ export class OuterPromise<T> implements Thenable<T> {
     public finally(callback: () => void): Promise<T> {
         return this.promise.finally(callback);
     }
+}
+
+/**
+ * Provides an interface for resolving a promise from external scopes.
+ * This is especially useful for resolving promises in classes.
+ * 
+ * @extends {PromiseWrapper<T>}
+ * @implements {Thenable<T>}
+ */
+export class ExternalPromise<T> extends PromiseWrapper<T> implements Thenable<T> {
+    public get resolve(): Resolver<T> { return this._resolve; }
+    public get reject(): Rejector { return this._reject; }
 }
