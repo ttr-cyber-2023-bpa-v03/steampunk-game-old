@@ -1,24 +1,16 @@
 import "@styles/index.scss";
 
-import { Camera, Renderer } from "@logic/graphics";
+import { Scheduler } from "@logic/scheduler";
+
+import { Renderer } from "@logic/graphics";
+import { JobOperation } from "@logic/scheduler/Job";
 
 const canvas = document.getElementById("frame") as HTMLCanvasElement;
 
-const renderer = new Renderer();
-renderer.init(canvas).then(ctx => {
-    const camera = new Camera(ctx);
+const scheduler = new Scheduler();
+scheduler.start();
 
-    const o: any = {
-        hue: 0
-    };
-
-    // TODO: we need a task scheduler for this
-    setInterval(() => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        o.hue += 0.1;
-
-        camera.render(o);
-    }, 0);
-});
+scheduler.schedule(Scheduler.createJob("init", async () => {
+    console.log("running");
+    return JobOperation.Abort;
+}));
