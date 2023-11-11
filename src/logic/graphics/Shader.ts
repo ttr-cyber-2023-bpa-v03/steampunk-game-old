@@ -41,7 +41,6 @@ export class Shader {
     }
 
     public use() {
-        const gl = this.gl;
         this.gl.useProgram(this.program);
     }
 

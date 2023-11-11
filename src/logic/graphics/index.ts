@@ -1,1 +1,2 @@
-export * from "./Renderer";
+export * from "./Scene";
+export * from "./Shader";
