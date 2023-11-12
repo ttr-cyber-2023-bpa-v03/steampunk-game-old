@@ -2,14 +2,17 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 
 const dotenv = require("dotenv");
 dotenv.config();
 
+const isDev = process.env.NODE_ENV === "development";
+
 module.exports = {
     entry: "./src/index.ts",
     target: "web",
-    devtool: process.env.NODE_ENV === "development" ? "eval-cheap-module-source-map" : "source-map",
+    devtool: isDev ? "eval-cheap-module-source-map" : "source-map",
     module: {
         rules: [
             {
@@ -47,6 +50,20 @@ module.exports = {
             ]
         })
     ],
+    optimization: {
+        minimize: !isDev,
+        minimizer: [
+            new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                    sourceMap: true,
+                    mangle: true,
+                    format: { comments: false },
+                },
+                extractComments: false
+            })
+        ]
+    },
     devServer: {
         static: path.resolve(__dirname, "dist"),
         compress: true,
