@@ -1,3 +1,11 @@
-# Ignoring the archive folder because I will usually dump my old prototypes there - Nicholas
-/archive/
+# Archived code
+/_archive/
+
+# Dependencies
 node_modules/
+
+# Compiled TypeScript files
+dist/
+
+# Executable files
+bin/

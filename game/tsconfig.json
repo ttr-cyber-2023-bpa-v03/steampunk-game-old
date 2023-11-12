@@ -4,7 +4,9 @@
         "noImplicitAny": true,
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
-        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "removeComments": false,
         "sourceMap": true,
         "moduleResolution": "Bundler",
         "strict": true,
@@ -14,9 +16,9 @@
         "paths": {
             "@helpers/*": [ "helpers/*" ],
             "@styles/*": [ "styles/*" ],
-            "@logic/*": [ "logic/*" ],
+            "@logic/*": [ "logic/*" ]
         }
     },
     "include": [ "./src/**/*.ts" ],
-    "exclude": [ "node_modules" ],
+    "exclude": [ "node_modules" ]
 }
