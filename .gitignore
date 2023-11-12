@@ -9,3 +9,8 @@ dist/
 
 # Executable files
 bin/
+target/
+
+# Do not commit Bun lockfile. Why? Because Bun will convert the npm lockfile to a Bun
+# lockfile (https://github.com/oven-sh/bun/pull/6352)
+bun.lockb
