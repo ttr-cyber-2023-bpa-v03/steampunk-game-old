@@ -1,18 +1,15 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const dotenv = require("dotenv");
 dotenv.config();
 
-const dev = process.env.NODE_ENV !== "production";
-if (!process.env.DEV_PORT && dev) {
-    console.error("Please specify a port with the DEV_PORT environment variable.");
-    process.exit(1);
-}
-
 module.exports = {
     entry: "./src/index.ts",
+    target: "web",
+    devtool: process.env.NODE_ENV === "development" ? "eval-cheap-module-source-map" : "source-map",
     module: {
         rules: [
             {
@@ -26,7 +23,6 @@ module.exports = {
             }
         ]
     },
-    devtool: dev ? "eval-cheap-module-source-map" : "source-map",
     resolve: {
         extensions: [ ".ts", ".js" ],
         plugins: [
@@ -37,17 +33,23 @@ module.exports = {
     },
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "static")
+        path: path.resolve(__dirname, "dist")
     },
     plugins: [
         new HtmlWebpackPlugin({
             template: "./src/index.html",
-            favicon: "./static/favicon.ico"
+            favicon: "./assets/favicon.ico"
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: "./assets", to: "./assets" },
+                { from: "./src/shaders", to: "./shaders" }
+            ]
         })
     ],
     devServer: {
-        static: path.resolve(__dirname, "static"),
+        static: path.resolve(__dirname, "dist"),
         compress: true,
-        port: process.env.DEV_PORT
+        port: 3000
     }
 };
