@@ -8,6 +8,7 @@ import { Job, JobOperation, JobTask } from "./Job";
  */
 export class Scheduler extends PromiseWrapper<void> {
     private jobs: Set<Job> = new Set();
+    private stepPool: Promise<JobOperation | void>[] = [];
 
     // This is the ID of the scheduler's next runthrough. This is used to cancel
     // the scheduler if needed.
@@ -40,13 +41,16 @@ export class Scheduler extends PromiseWrapper<void> {
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this._resolve();
+            this.animationFrameId = null;
         }
     }
 
-    private fatalStop(err: Error) {
+    private killScheduler(err: Error) {
+        // Stop the scheduler and propagate the error to the promise
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this._reject(err);
+            this.animationFrameId = null;
         }
     }
 
@@ -83,28 +87,29 @@ export class Scheduler extends PromiseWrapper<void> {
             return;
         }
 
-        let currentJob!: Job;
-        try {
-            // Run scheduled jobs
-            for (currentJob of this.jobs) {
-                const status = await currentJob.step();
+        // Run scheduled jobs
+        for (let job of this.jobs) {
+            this.stepPool.push(job.step().then((status: any) => {
                 switch (status) {
                     // Throw an error to be caught
                     case JobOperation.Abort:
-                        this.fatalStop(new Error(`Job '${currentJob.name}' aborted.`));
+                        this.killScheduler(new Error(`Job '${job.name}' aborted.`));
 
                     // Reschedule the job for the next frame
                     case JobOperation.Detach:
-                        this.jobs.delete(currentJob);
+                        this.jobs.delete(job);
                         break;
                 }
-            }
+            }).catch((err: Error) => {
+                // Stop the scheduler and propagate the error to the promise
+                this.killScheduler(new Error(`Job '${job.name}' threw an exception.`,
+                    { cause: err }));
+            }));
         }
-        catch (cause) {
-            // Stop the scheduler and propagate the error to the promise
-            this.fatalStop(new Error(`Job '${currentJob.name}' threw an exception.`,
-                { cause }));
-        }
+
+        // Wait for all step operations to complete then clear the pool
+        await Promise.all(this.stepPool);
+        this.stepPool.length = 0;
 
         // As long as the loop isn't stopped, reschedule it for the next frame.
         if (!this.finished) {

@@ -1,16 +1,20 @@
 export class Shader {
     public readonly program: WebGLProgram;
+    public readonly id: string;
     private gl: WebGLRenderingContext;
 
-    public constructor(gl: WebGLRenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+    public constructor(gl: WebGLRenderingContext, id: string, shaders: WebGLShader[]) {
         // Create a program
         const program = gl.createProgram();
         if (program == null)
             throw new Error("Failed to create WebGL program object");
 
+        // Set id
+        this.id = id;
+
         // Attach the shaders
-        gl.attachShader(program, vertexShader);
-        gl.attachShader(program, fragmentShader);
+        for (const shader of shaders)
+            gl.attachShader(program, shader);
 
         // Link the program
         gl.linkProgram(program);
@@ -38,13 +42,5 @@ export class Shader {
         if (uniform == null)
             throw new Error("Failed to get uniform location: " + name);
         return uniform;
-    }
-
-    public use() {
-        this.gl.useProgram(this.program);
-    }
-
-    public delete() {
-        this.gl.deleteProgram(this.program);
     }
 }
