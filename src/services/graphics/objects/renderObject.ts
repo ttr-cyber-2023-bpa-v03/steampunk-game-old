@@ -1,6 +1,6 @@
 import { vec2 } from "gl-matrix"
-import { Scene } from "../Scene";
-import { Shader } from "../Shader";
+import { Scene } from "../scene";
+import { Shader } from "../shader";
 
 export abstract class RenderObject {
     /**

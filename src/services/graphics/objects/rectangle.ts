@@ -1,4 +1,4 @@
-import { RenderObject } from "./RenderObject";
+import { RenderObject } from "./renderObject";
 import { vec3 } from "gl-matrix"
 
 export class Rectangle extends RenderObject {

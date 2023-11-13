@@ -1,8 +1,7 @@
 import { ExternalPromise } from "@helpers/promises";
-import { vec2, mat4 } from "gl-matrix";
-import { Shader } from ".";
-import { RenderObject } from "./objects/RenderObject";
-import { ShaderType, idFromShaderType } from "./ShaderType";
+import { Shader } from "./shader";
+import { RenderObject } from "./objects/renderObject";
+import { ShaderType, idFromShaderType } from "./shaderType";
 
 /**
  * Scenes will hold all the objects that will be rendered.

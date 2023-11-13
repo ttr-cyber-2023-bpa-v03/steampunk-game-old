@@ -1,14 +1,20 @@
 const DEFAULT_FRAME_DELAY: number = 1000 / 60;
 
-import { PromiseWrapper } from "@helpers/promises";
-import { Job, JobOperation, JobTask } from "./Job";
+import { ExternalPromise } from "@helpers/promises";
+
+export type JobRet = Promise<void>;
+export type Job = () => JobRet;
 
 /**
  * Schedules tasks for the game. This class contains the core game loop.
  */
-export class Scheduler extends PromiseWrapper<void> {
+export class Scheduler {
     private jobs: Set<Job> = new Set();
-    private stepPool: Promise<JobOperation | void>[] = [];
+    private stepPool: JobRet[] = [];
+
+    // The promise that will be resolved when the scheduler is stopped and rejected if
+    // the scheduler crashes.
+    public running = new ExternalPromise<void>();
 
     // This is the ID of the scheduler's next runthrough. This is used to cancel
     // the scheduler if needed.
@@ -37,19 +43,27 @@ export class Scheduler extends PromiseWrapper<void> {
     /**
      * Stops the scheduler.
      */
-    public stop() {
+    public async stop() {
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
-            this._resolve();
             this.animationFrameId = null;
         }
+
+        // Wait for all jobs to complete
+        await Promise.all(this.stepPool);
+        this.running.resolve();
     }
 
+    /**
+     * Kills the scheduler and propagates an error to the promise.
+     * 
+     * @param err The error to propagate.
+     */
     private killScheduler(err: Error) {
         // Stop the scheduler and propagate the error to the promise
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
-            this._reject(err);
+            this.running.reject(err);
             this.animationFrameId = null;
         }
     }
@@ -64,17 +78,8 @@ export class Scheduler extends PromiseWrapper<void> {
     }
 
     /**
-     * Creates a new job object.
-     * 
-     * @param name The name of the job.
-     * @param task The task to run on each frame.
+     * The core game loop. This is called on each frame.
      */
-    public static createJob(name: string, task: JobTask): Job {
-        const job = new Job(name);
-        job.step = task;
-        return job;
-    }
-
     private async loop() {
         const currentTime = performance.now();
         const elapsed = currentTime - this._frameTime;
@@ -82,28 +87,15 @@ export class Scheduler extends PromiseWrapper<void> {
         // Respect the frame delay by rescheduling the loop if the delay has not
         // elapsed yet.
         if (elapsed < this.frameDelay) {
-            if (!this.finished)
+            if (!this.running.finished)
                 this.animationFrameId = requestAnimationFrame(this.boundLoop);
             return;
         }
 
         // Run scheduled jobs
         for (let job of this.jobs) {
-            this.stepPool.push(job.step().then((status: any) => {
-                switch (status) {
-                    // Throw an error to be caught
-                    case JobOperation.Abort:
-                        this.killScheduler(new Error(`Job '${job.name}' aborted.`));
-
-                    // Reschedule the job for the next frame
-                    case JobOperation.Detach:
-                        this.jobs.delete(job);
-                        break;
-                }
-            }).catch((err: Error) => {
-                // Stop the scheduler and propagate the error to the promise
-                this.killScheduler(new Error(`Job '${job.name}' threw an exception.`,
-                    { cause: err }));
+            this.stepPool.push(job().catch((err: Error) => {
+                this.killScheduler(new Error(`Job threw an exception.`, { cause: err }));
             }));
         }
 
@@ -112,7 +104,7 @@ export class Scheduler extends PromiseWrapper<void> {
         this.stepPool.length = 0;
 
         // As long as the loop isn't stopped, reschedule it for the next frame.
-        if (!this.finished) {
+        if (!this.running.finished) {
             this._frameTime = currentTime - (elapsed % this.frameDelay);
             this.animationFrameId = requestAnimationFrame(this.boundLoop);
         }
