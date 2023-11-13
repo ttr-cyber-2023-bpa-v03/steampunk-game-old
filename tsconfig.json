@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
         "baseUrl": "./src",
+        "outDir": "./dist",
         "noImplicitAny": true,
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "removeComments": false,
         "sourceMap": true,
         "moduleResolution": "Bundler",
         "strict": true,
