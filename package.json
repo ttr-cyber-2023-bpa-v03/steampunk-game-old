@@ -4,7 +4,7 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "tauri": "tauri dev"
+    "tauri": "tauri"
   },
   "license": "UNLICENSED",
   "private": true,
