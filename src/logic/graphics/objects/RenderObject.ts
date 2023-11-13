@@ -1,11 +1,20 @@
 import { vec2 } from "gl-matrix"
 import { Scene } from "../Scene";
+import { Shader } from "../Shader";
 
 export abstract class RenderObject {
     /**
      * The parent scene of the object.
      */
     public scene: Scene;
+
+    public shader!: Shader;
+
+    /**
+     * This determines the order in which objects are rendered. Objects with a higher
+     * z-index will render on top of objects with a lower z-index.
+     */
+    public zIndex: number = 0;
 
     public constructor(scene: Scene) {
         this.scene = scene;
@@ -42,5 +51,5 @@ export abstract class RenderObject {
     /**
      * Renders the object.
      */
-    public abstract draw(): Promise<void>;
+    public abstract draw(): void;
 }
