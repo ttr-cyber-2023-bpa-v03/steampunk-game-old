@@ -23,8 +23,8 @@ await engine.start();
 const graphics = await engine.getService(GraphicsService);
 await graphics.ready;
 await graphics.scene.loadShader("solid", [
-    [  ShaderType.Vertex, "shaders/vertex.glsl" ],
-    [  ShaderType.Fragment, "shaders/solid.glsl" ],
+    [ ShaderType.Vertex, "shaders/vertex.glsl" ],
+    [ ShaderType.Fragment, "shaders/solid.glsl" ],
 ]);
 
 const rect = new Rectangle(graphics.scene);
