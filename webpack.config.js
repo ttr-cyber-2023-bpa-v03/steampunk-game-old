@@ -4,7 +4,6 @@ const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
-
 const dotenv = require("dotenv");
 dotenv.config();
 
