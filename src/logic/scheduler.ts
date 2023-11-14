@@ -93,9 +93,9 @@ export class Scheduler {
         }
 
         // Run scheduled jobs
-        for (let job of this.jobs) {
+        for (const job of this.jobs) {
             this.stepPool.push(job().catch((err: Error) => {
-                this.killScheduler(new Error(`Job threw an exception.`, { cause: err }));
+                this.killScheduler(new Error("Job threw an exception.", { cause: err }));
             }));
         }
 

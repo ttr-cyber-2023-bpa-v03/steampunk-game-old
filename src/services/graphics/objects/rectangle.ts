@@ -1,5 +1,5 @@
 import { RenderObject } from "./renderObject";
-import { vec3 } from "gl-matrix"
+import { vec3 } from "gl-matrix";
 
 export class Rectangle extends RenderObject {
     public color: vec3 = vec3.fromValues(1.0, 1.0, 1.0);

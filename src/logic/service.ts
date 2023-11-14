@@ -1,8 +1,13 @@
 import { ExternalPromise } from "@helpers/promises";
 import { Engine } from "./engine";
-import { Job } from "./scheduler";
 
-export type ServiceFactory<T extends Service> = new (engine: Engine) => T;
+export type ServiceCreator<T extends Service> = new (engine: Engine) => T;
+
+// Expose internal methods for the engine
+export interface ServiceInternalHack {
+    _startInternal(): Promise<void>;
+    _stopInternal(): Promise<void>;
+}
 
 export abstract class Service {
     public engine: Engine;
@@ -16,7 +21,8 @@ export abstract class Service {
         this.ready = new ExternalPromise<void>();
     }
 
-    public async _startInternal(): Promise<void> {
+    // eslint-disable-next-line no-unused-vars
+    private async _startInternal(): Promise<void> {
         this._running = true;
         await this.start();
 

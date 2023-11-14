@@ -1,4 +1,4 @@
-import { vec2 } from "gl-matrix"
+import { vec2 } from "gl-matrix";
 import { Scene } from "../scene";
 import { Shader } from "../shader";
 

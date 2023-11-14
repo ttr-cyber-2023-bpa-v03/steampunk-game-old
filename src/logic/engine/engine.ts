@@ -1,5 +1,5 @@
 import { Job, Scheduler } from "@logic/scheduler";
-import { Service, ServiceFactory as ServiceValue } from "@logic/service";
+import { Service, ServiceInternalHack, ServiceCreator } from "@logic/service";
 import { EngineState } from "./engineState";
 
 export class Engine {
@@ -9,12 +9,17 @@ export class Engine {
     private _state: EngineState = EngineState.Stopped;
     public get state(): EngineState { return this._state; }
 
-    public async loadService<T extends Service>(serviceClass: ServiceValue<T>): Promise<void> {
+    private static async startService<T extends Service>(service: T) {
+        // Convert service to internal hack class and start it
+        await (service as unknown as ServiceInternalHack)._startInternal();
+    }
+    
+    public async loadService<T extends Service>(serviceClass: ServiceCreator<T>): Promise<void> {
         try {
             const service = new serviceClass(this);
             this.services.set(service.constructor.name, service);
             if (this.state == EngineState.Running)
-                await service._startInternal();
+                await Engine.startService(service);
             console.debug(`[Engine] Loaded service "${serviceClass.name}"`);
         }
         catch (error) {
@@ -22,7 +27,7 @@ export class Engine {
         }
     }
 
-    public async getService<T extends Service>(serviceClass: ServiceValue<T>): Promise<T> {
+    public async getService<T extends Service>(serviceClass: ServiceCreator<T>): Promise<T> {
         const service = this.services.get(serviceClass.name);
 
         // Check if the service loaded and if not, load it
@@ -44,7 +49,7 @@ export class Engine {
 
         // Start all services
         for (const service of this.services.values())
-            await service._startInternal();
+            await Engine.startService(service);
 
         this._state = EngineState.Running;
     }

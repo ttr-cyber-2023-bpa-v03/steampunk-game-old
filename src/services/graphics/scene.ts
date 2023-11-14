@@ -137,9 +137,9 @@ export class Scene {
         gl.clear(this.gl.COLOR_BUFFER_BIT);
 
         // Render each object
-        for (let [ shader, objects ] of this.objects) {
+        for (const [ shader, objects ] of this.objects) {
             gl.useProgram(shader.program);
-            for (let object of objects)
+            for (const object of objects)
                 object.draw();
         }
     }

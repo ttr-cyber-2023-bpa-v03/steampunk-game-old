@@ -2,7 +2,6 @@ import "@styles/index.scss";
 
 import { Engine } from "@logic/engine";
 import { GraphicsService } from "services/graphics";
-import { Service } from "@logic/service";
 import { Rectangle } from "services/graphics/objects/rectangle";
 import { ShaderType } from "services/graphics/shaderType";
 
@@ -28,7 +27,7 @@ await graphics.scene.loadShader("solid", [
 ]);
 
 const rect = new Rectangle(graphics.scene);
-rect.position = [ 100, 100 ];
+rect.position = [ 100, 100 ]
 rect.size = [ 100, 200 ];
 rect.color = [ 1, 0, 0 ];
 rect.visible = true;
@@ -37,6 +36,6 @@ await rect.allocate();
 window.onmousemove = async (e) => {
     rect.position = [ e.clientX, e.clientY ];
     await rect.update();
-}
+};
 
 graphics.scene.addObject(rect);

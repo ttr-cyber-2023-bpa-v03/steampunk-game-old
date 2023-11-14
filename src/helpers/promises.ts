@@ -110,8 +110,8 @@ export class PromiseWrapper<T> implements Thenable<T> {
      * @see {Thenable.then}
      */
     public then<TResult1 = T, TResult2 = never>(
-          onfulfilled?: FulfillmentCallback<T, TResult1>,
-          onrejected?: RejectionCallback<TResult2>): Promise<TResult1 | TResult2> {
+        onfulfilled?: FulfillmentCallback<T, TResult1>,
+        onrejected?: RejectionCallback<TResult2>): Promise<TResult1 | TResult2> {
         return this.promise.then(onfulfilled, onrejected);
     }
 
