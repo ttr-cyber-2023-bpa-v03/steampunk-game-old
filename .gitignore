@@ -1,0 +1,11 @@
+# Clangd cache
+/.cache/
+
+# Archived files
+/archive/
+
+# CMake and build directory
+build/
+CMakeFiles
+CMakeCache.txt
+

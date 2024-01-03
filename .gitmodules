@@ -1,0 +1,10 @@
+[submodule "dependencies/oneTBB"]
+	path = dependencies/oneTBB
+	url = https://github.com/oneapi-src/oneTBB.git
+[submodule "dependencies/glm"]
+	path = dependencies/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "dependencies/SDL"]
+	path = dependencies/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = release-2.0.14
