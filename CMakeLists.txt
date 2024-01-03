@@ -25,8 +25,8 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 add_subdirectory(dependencies/glm)
 set_property(TARGET glm PROPERTY FOLDER "dependencies/glm")
 
-set(TBB_TEST OFF)
-set(TBB_INSTALL OFF)
+option(TBB_TEST OFF)
+option(TBB_INSTALL OFF)
 add_subdirectory(dependencies/oneTBB)
 set_property(TARGET tbb tbbmalloc tbbmalloc_proxy PROPERTY FOLDER "dependencies/oneTBB")
 
