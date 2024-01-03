@@ -1,10 +1,25 @@
+# No other tags would build appropriately, bleeding edge is probably fine
 [submodule "dependencies/oneTBB"]
 	path = dependencies/oneTBB
 	url = https://github.com/oneapi-src/oneTBB.git
+	branch = master
+
 [submodule "dependencies/glm"]
 	path = dependencies/glm
 	url = https://github.com/g-truc/glm.git
+	branch = 0.9.9.8
+
 [submodule "dependencies/SDL"]
 	path = dependencies/SDL
 	url = https://github.com/libsdl-org/SDL.git
-	branch = release-2.0.14
+	branch = release-2.28.5
+
+[submodule "dependencies/SDL_image"]
+	path = dependencies/SDL_image
+	url = https://github.com/libsdl-org/SDL_image.git
+	branch = release-2.8.2
+
+[submodule "dependencies/SDL_ttf"]
+	path = dependencies/SDL_ttf
+	url = https://github.com/libsdl-org/SDL_ttf.git
+	branch = release-2.20.2
