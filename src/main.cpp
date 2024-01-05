@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 		state::scheduler->frame_delay = 1.0L / 60.0; // 60 fps default
 
 		// Initialize the write job
-		state::j_write  = std::make_shared<game::write_job>();
+		state::j_write = std::make_shared<game::write_job>();
 		state::scheduler->schedule(state::j_write);
 
 		// Initialize the renderer
