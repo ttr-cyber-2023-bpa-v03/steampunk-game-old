@@ -4,10 +4,20 @@
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
 
+#include "util/debug.hpp"
+
 #include "rendering/render_job.hpp"
+#include <iostream>
 
 // Alias for the state class. Saves me from a migraine.
 using game::state;
+
+class test_object : public game::object {
+public:
+	test_object() : game::object("test_object") {
+		SG_LOCATE;
+	}
+};
 
 int main(int argc, char* argv[]) {
 	{
@@ -20,8 +30,15 @@ int main(int argc, char* argv[]) {
 		state::scheduler->schedule(state::j_write);
 
 		// Initialize the renderer
-		const auto render_job = std::make_shared<rendering::render_job>("Viewport", glm::vec2{ 800, 600 });
-		state::scheduler->schedule(render_job);
+		//const auto render_job = std::make_shared<rendering::render_job>("Viewport", glm::vec2{ 800, 600 });
+		//state::scheduler->schedule(render_job);
+
+		// we test stuff hehe
+		SG_LOCATE;
+		test_object obj{};
+		test_object obj2{};
+
+		obj.add_child(obj2);
 
 		// Start the scheduler arbiter
 		state::scheduler->start(false);

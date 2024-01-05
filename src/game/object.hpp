@@ -2,6 +2,7 @@
 
 #include "game/state.hpp"
 #include "game/write_job.hpp"
+#include "util/debug.hpp"
 
 #include <memory>
 #include <string>
@@ -22,6 +23,11 @@ namespace game {
     public:
         object(const std::string_view name) : _name(name) {}
 
+        // For shared_from_this
+        std::shared_ptr<object> getptr() {
+            return shared_from_this();
+        }
+
         [[nodiscard]] auto name() const { return _name; }
 
         // Retreive a list of children to the object. Note that this creates a copy, so
@@ -31,10 +37,12 @@ namespace game {
         // Add an object as a child to this object.
         void add_child(object& child) {
             // Get the shared pointer to the child
+            SG_LOCATE;
             const auto p_child = child.shared_from_this();
-
+            
             // Queue child addition
             state::j_write->enqueue([this, p_child] {
+                SG_LOCATE;
                 _children.push_back(p_child);
             });
         }
