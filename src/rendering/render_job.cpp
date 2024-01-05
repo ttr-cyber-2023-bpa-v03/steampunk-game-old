@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "game/state.hpp"
+#include "game/world.hpp"
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
 
@@ -53,8 +53,8 @@ namespace rendering {
             switch (event.type) {
             case SDL_QUIT:
                 // Stop the scheduler when the window is closed
-                game::state::scheduler->signal_stop();
-                    break;
+                game::world::instance()->scheduler->signal_stop();
+                break;
             case SDL_KEYDOWN:
                 // Handle keydown event
                 std::cout << "Keydown event" << std::endl;

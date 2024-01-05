@@ -2,6 +2,7 @@
 
 #if defined(__linux__)
 
+#include <functional>
 #include <thread>
 #include <cstdint>
 
@@ -10,6 +11,9 @@ namespace platform {
     using affinity_mask = std::uintptr_t;
 
     void set_thread_affinity(std::thread& thread, const affinity_mask mask);
+
+    using signal_handler = std::function<void(int)>;
+    void on_close(signal_handler callback);
 }
 
 #else
