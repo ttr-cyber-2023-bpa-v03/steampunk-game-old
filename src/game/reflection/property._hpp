@@ -1,0 +1,117 @@
+#pragma once
+
+// REVOKED FROM COMPILATION
+// Refer to object.hpp for more information on why this file is not being used in
+// the project.
+
+#include "game/write_job.hpp"
+#include "game/state.hpp"
+
+#include <memory>
+#include <string>
+#include <optional>
+
+namespace game {
+    // Forward declarations
+    class object;
+
+    // The lowest lifeform possible for a property. Comparable to some ancient
+    // single-celluar organism that has existed since the dawn of life.
+    // This class is intended to serve an extremely basic functionality that
+    // is required where reflection isn't easy *loud coughing* C++.
+    class base_property : public std::enable_shared_from_this<base_property> {
+        // Contains the name of the property.
+        std::string _name;
+
+        // No, there isn't a value defined here. That's not for this class to
+        // handle.
+
+    protected:
+        // Raw read. Thread-safe as long as it isn't concurrently
+        // executing alongside write_job.
+        [[nodiscard]] virtual void* raw_get() = 0;
+
+        // Raw write. Intended to be called by write_job.
+        virtual void raw_set(void* value) = 0;
+
+    public:
+        base_property(const std::string_view name) : _name(name) {}
+
+        // C++ OOP shenanigans
+        // No clue why I have to define an implicitly defined destructor
+        // to make polymorphism work but whatever.
+        virtual ~base_property() = default;
+
+        // Returns the name of the property.
+        [[nodiscard]] auto name() const { return _name; }
+
+        // Friend classes
+        friend class object;
+    };
+
+    template <class T>
+    class general_property : public base_property {
+    public:
+        general_property(const std::string_view name) : base_property(name) {}
+
+        // Returns a reference to the value.
+        virtual T& get() const = 0;
+
+        // Copies the value and returns it.
+        virtual T get_cpy() const = 0;
+
+        // Returns a pointer to the value.
+        virtual T* get_ptr() const = 0;
+
+        // Set the value to the given lvalue using the scheduler's write job.
+        void set(T value) {
+            auto&& self = shared_from_this();
+            game::state::j_write->enqueue_write(self, name(), value);
+        }
+
+        // Set the value to the given rvalue using the scheduler's write job.
+        void set(T&& value) {
+            auto&& self = shared_from_this();
+            game::state::j_write->enqueue_write(self, name(), std::move(value));
+        }
+    };
+
+    template <class T, class ValueType>
+    concept is_general_property = std::derived_from<T, general_property<ValueType>>;
+
+    // This property is a bit more advanced, allowing the user to store
+    // primitive and trivially copyable types.
+    template <class T> requires std::is_trivially_copyable_v<T> &&
+                       std::is_standard_layout_v<T>
+    class basic_property : public general_property<T> {
+        mutable T _value_store;
+
+    protected:
+        [[nodiscard]] void* raw_get() override {
+            return reinterpret_cast<void*>(&_value_store);
+        }
+
+        void raw_set(void* value) override {
+            _value_store = *reinterpret_cast<T*>(value);
+        }
+
+    public:
+        template <class... Args>
+        basic_property(const std::string_view name, Args&& ...args)
+            : general_property<T>(name), _value_store(T(args...)) {}
+
+        // Implementations for general_property
+
+        T& get() const override { return _value_store; }
+
+        T get_cpy() const override { return _value_store; }
+
+        T* get_ptr() const override { return &_value_store; }
+    };
+
+    // test lol
+    inline void test() {
+        basic_property<std::uint32_t> abcd("test", 5);
+        
+    }
+}

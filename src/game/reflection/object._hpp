@@ -1,0 +1,88 @@
+#pragma once
+
+// REVOKED FROM COMPILATION
+
+// I figured its not worth the effort to work on this any further. Reflection would be
+// nice, especially if we wanted to move to using a scripting language, but for our
+// requirements, this is overkill, and I didn't notice that until now.
+
+// May come back to this later and im going to leave it in the original source, but with
+// ._(c/h)pp in the name so it doesn't get compiled.
+
+#include "game/state.hpp"
+#include "property.hpp"
+
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace game {
+    // This class offers somewhat of a "reflection" system. It allows for the creation
+    // of dynamic objects, those of which can be modified and accessed at runtime.
+    class object : public std::enable_shared_from_this<object> {
+        // The name of the object.
+        std::string _name;
+
+        // A list of properties that the object has. This is used to provide some of the
+        // reflective functionality that this class promises.
+        std::vector<std::unique_ptr<base_property>> _properties;
+
+        // A list of children to the object. This is used to allow for the creation
+        // of a hierarchy of objects.
+        std::vector<std::shared_ptr<object>> _children;
+
+        // TODO: Remove this modifier when done fiddling with this class
+    protected:
+        base_property* find_property(const std::string& property) {
+            const auto it = std::ranges::find(_properties, property, &base_property::name);
+            if (it == _properties.end())
+                return nullptr;
+            return it->get();
+        }
+
+        void set_unsafe(const std::string& property, void* value) {
+            auto prop = find_property(property);
+            prop->raw_set(value);
+        }
+
+    protected:
+        template <class StaticProperty, class... Args> 
+        void define(Args&&... args) {
+            _properties.emplace_back(std::make_unique<StaticProperty>(std::forward<Args>(args)...));
+        }
+
+    public:
+        object(const std::string_view name) : _name(name) {}
+
+        [[nodiscard]] auto name() const { return _name; }
+
+        // I know this below code is voodoo stuff to some people, but it's the best I can
+        // do to simplify the process of writing.
+
+        // Marshal function for reading from an object property.
+        [[nodiscard]] void* get(const std::string& property) {
+            auto prop = find_property(property);
+            if (!prop)
+                throw std::runtime_error("Property not found on object");
+            return prop->raw_get();
+        }
+
+        // Marshal function for writing to an object property. 
+        void set(const std::string& property, void* value) {
+            auto prop = find_property(property);
+            if (!prop)
+                throw std::runtime_error("Property not found on object");
+            prop->raw_set(value);
+        }
+
+        // Bracket access operator will find a property and return a pointer to it.
+        template <class T>
+        [[nodiscard]] T* operator[](const std::string& property) {
+            return find_property(property);
+        }
+        
+        // Friend classes
+        friend class write_job;
+    };
+}
