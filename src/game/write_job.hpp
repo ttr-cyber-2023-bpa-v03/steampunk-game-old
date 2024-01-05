@@ -1,27 +1,33 @@
 #pragma once
 
+#include <functional>
 #include <tbb/concurrent_queue.h>
 
 #include "sched/job.hpp"
 
+// I settled with a little messier solution than the one i had in mind, but it works.
+// Initially, I was working on a reflection system to allow for property management,
+// but it would take a lot of blood, sweat, and tears to get it working. I decided
+// to settle with a simpler solution that would allow for the same functionality and
+// some additional flexibility.
+
+// Eight hours down the drain, but at least I archived it and can come back to it
+// later if I ever want to.
+
 namespace game {
     class object;
-    
+
+    // This class is used to queue writes to objects. It is used to ensure that writes
+    // are done in a synchonized manner, keeping other jobs like the renderer from
+    // colliding with object information during a write and causing all sorts of nasty
+    // bugs. It is referred to as j_write in the state class for easy access and is
+    // intended to be initialized alongside the scheduler.
     class write_job final : public sched::job {
-        class req_write {
-        public:
-            std::shared_ptr<object> obj;
-            std::string property;
-            std::shared_ptr<void> value;
-
-            req_write(const std::shared_ptr<object>& obj_, std::string property_, const std::shared_ptr<void>& value)
-                : obj(obj_), property(std::move(property_)), value(value) {}
-        };
-
-        // TODO: A more efficient way to handle this would be to execute game logic in an orderly manner
-        ///      A lock-free queue may not even be required, however it is a precautionary measure. See
-        ///      the mutex for more clarification on why this was done.
-        tbb::concurrent_queue<std::unique_ptr<req_write>> _rw_queue;
+        // A list of functions to be invoked by the write job. These functions are to
+        // write to the object.
+        // By the way i wrapped this in a smart pointer because std::function doesn't
+        // work well with the concurrent queue.
+        tbb::concurrent_queue<std::unique_ptr<std::function<void()>>> queue;
 
     public:
         // The presence of this mutex is a precautionary measure. While reads and writes are currently
@@ -30,8 +36,10 @@ namespace game {
         // preventing potential data races.
         std::mutex mutex{};
 
+        // Ran by the scheduler to execute the queued functions.
         void execute() override;
 
-        void enqueue_write(const std::shared_ptr<object>& obj, const std::string& property, std::shared_ptr<void>& value);
+        // Enqueue a function to be called during the write cycle.
+        void enqueue(std::function<void()>&& fn);
     };
 }

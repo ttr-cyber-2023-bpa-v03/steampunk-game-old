@@ -9,14 +9,15 @@ namespace game {
         // (concurrent R/W is rare in this case).
         std::lock_guard lock(mutex);
 
-        // Empty the queue and write all pending values
-        std::unique_ptr<req_write> req;
-        while (_rw_queue.try_pop(req)) {
-            req->obj->set_unsafe(req->property, req->value);
+        // Empty the queue and execute all pending functions
+        std::unique_ptr<std::function<void()>> pfn;
+        while (queue.try_pop(pfn)) {
+            (*pfn)();
+            // RAII should take care of the rest
         }
     }
 
-    void write_job::enqueue_write(const std::shared_ptr<object>& obj, const std::string& property, std::shared_ptr<void>& value) {
-        _rw_queue.push(std::make_unique<req_write>(obj, property, value));
+    void write_job::enqueue(std::function<void()>&& fn) {
+        queue.push(std::make_unique<std::function<void()>>(std::move(fn)));
     }
 }
