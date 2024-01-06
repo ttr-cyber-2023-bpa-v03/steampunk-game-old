@@ -42,15 +42,15 @@ int main(int argc, char* argv[]) {
 	});
 
 	// Create a test object
-	/*auto text = std::make_shared<rendering::text_box>();
+	auto text = std::make_shared<rendering::text_box>();
 	text->set_font("Terminus.ttf", 64);
-	text->set_text("orangutan");
+	text->set_text("usb dongle simulator 0.1");
 	text->position = { 0, 0 };
-	world->render_job->add_renderable(text);*/
+	world->render_job->add_renderable(text);
 
 	// Start the scheduler, which will also block this thread until the scheduler is
 	// gracefully stopped
-	world->set_fps(1000000000);
+	world->set_fps(144);
 	world->start();
 
 	// This is the desired "normal" exit point of the program.

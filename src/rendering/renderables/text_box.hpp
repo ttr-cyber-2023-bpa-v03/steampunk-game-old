@@ -55,9 +55,9 @@ namespace rendering {
             const SDL_Rect rect{ static_cast<int>(position.x), static_cast<int>(position.y), _surface->w, _surface->h };
             SDL_RenderCopy(renderer, _texture.get(), nullptr, &rect);
         
-            /*h += 0.01f;
+            h += 0.01f;
             _color = hsv2rgb(h, 1.0f, 1.0f);
-            if (h >= 1.0f) h = 0.0f;*/
+            if (h >= 1.0f) h = 0.0f;
         }
     };
 }

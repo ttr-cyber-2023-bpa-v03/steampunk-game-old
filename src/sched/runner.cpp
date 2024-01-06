@@ -12,7 +12,7 @@ namespace sched {
     // We can assume that our core count is static due to the nature of the
     // operating system. This is highly unlikely to change because it would
     // break the OS to change the amount of logical cores on the system
-    std::uint32_t runner::_core_count = std::thread::hardware_concurrency();
+    std::uint32_t runner::_core_count = 2;// std::thread::hardware_concurrency();
 
     void runner::push_worker() {
         // Get the next worker ID

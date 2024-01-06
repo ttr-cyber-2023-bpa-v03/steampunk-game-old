@@ -6,12 +6,9 @@
 
 namespace platform {
     void set_thread_affinity(std::thread& thread, const affinity_mask mask) {
-        if (!SetThreadAffinityMask(thread.native_handle(), mask))
-            throw std::runtime_error("Failed to set thread affinity");
-    }
-
-    void close_on_term() {
-        // no-op
+        //if (!SetThreadAffinityMask(thread.native_handle(), mask))
+        //    throw std::runtime_error("Failed to set thread affinity");
+        // Test patch
     }
 
     std::string executable_path() {

@@ -20,6 +20,6 @@ namespace platform {
 
 #else
 
-#warning "Included Linux system abstraction layer on a non-linux platform. This is probably a mistake."
+#pragma message ("Included Linux system abstraction layer on a non-linux platform. This is probably a mistake.")
 
 #endif

@@ -2,6 +2,7 @@
 
 #if defined(_WIN32)
 
+#include <functional>
 #include <thread>
 
 #define WIN32_LEAN_AND_MEAN
@@ -17,13 +18,14 @@ namespace platform {
 
 	void set_thread_affinity(std::thread& thread, affinity_mask mask);
 
-	void close_on_term();
+	using signal_handler = std::function<void(int)>;
+    inline void on_close(signal_handler callback) {}
 
 	std::string executable_path();
 }
 
 #else
 
-#warning "Included Windows system abstraction layer on a non-windows platform. This is probably a mistake."
+#pragma message ("Included Windows system abstraction layer on a non-windows platform. This is probably a mistake.")
 
 #endif
