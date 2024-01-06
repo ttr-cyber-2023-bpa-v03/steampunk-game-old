@@ -20,8 +20,7 @@ namespace game {
     // This class is used to queue writes to objects. It is used to ensure that writes
     // are done in a synchonized manner, keeping other jobs like the renderer from
     // colliding with object information during a write and causing all sorts of nasty
-    // bugs. It is referred to as j_write in the state class for easy access and is
-    // intended to be initialized alongside the scheduler.
+    // bugs.
     class write_job final : public sched::job {
         // A list of functions to be invoked by the write job. These functions are to
         // write to the object.
