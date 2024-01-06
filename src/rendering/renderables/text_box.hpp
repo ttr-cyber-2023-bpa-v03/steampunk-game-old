@@ -5,11 +5,15 @@
 #include <SDL_ttf.h>
 #include <glm/vec2.hpp>
 
+#include "SDL_pixels.h"
 #include "assets/content_provider.hpp"
 #include "rendering/renderable.hpp"
+#include "util/debug.hpp"
 
 namespace rendering {
     class render_job;
+
+    SDL_Color hsv2rgb(float h, float s, float v);
 
     class text_box final : public renderable {
         std::shared_ptr<TTF_Font> _font;
@@ -19,6 +23,8 @@ namespace rendering {
         util::unique_sdl<SDL_Texture> _texture;
 
         SDL_Color _color{};
+
+        float h = 0.0f;
 
         std::string _text{};
 
@@ -48,6 +54,10 @@ namespace rendering {
             
             const SDL_Rect rect{ static_cast<int>(position.x), static_cast<int>(position.y), _surface->w, _surface->h };
             SDL_RenderCopy(renderer, _texture.get(), nullptr, &rect);
+        
+            /*h += 0.01f;
+            _color = hsv2rgb(h, 1.0f, 1.0f);
+            if (h >= 1.0f) h = 0.0f;*/
         }
     };
 }

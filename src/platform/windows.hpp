@@ -18,6 +18,8 @@ namespace platform {
 	void set_thread_affinity(std::thread& thread, affinity_mask mask);
 
 	void close_on_term();
+
+	std::string executable_path();
 }
 
 #else

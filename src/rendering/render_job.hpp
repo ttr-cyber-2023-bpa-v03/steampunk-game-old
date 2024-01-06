@@ -13,10 +13,12 @@
 #include "renderable.hpp"
 #include "util/sdl_destroyer.hpp"
 
+#include <tbb/concurrent_hash_map.h>
+
 namespace rendering {
     class render_job final : public sched::job {
-		std::unordered_map<std::uint32_t, std::shared_ptr<renderable>> _render_objects;
-
+		tbb::concurrent_hash_map<std::uint32_t, std::shared_ptr<renderable>> _renderables;
+		
 		util::unique_sdl<SDL_Window> _window;
 		util::unique_sdl<SDL_Renderer> _renderer;
 

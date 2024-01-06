@@ -14,6 +14,8 @@ namespace platform {
 
     using signal_handler = std::function<void(int)>;
     void on_close(signal_handler callback);
+
+    std::string executable_path();
 }
 
 #else

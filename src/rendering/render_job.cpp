@@ -1,10 +1,14 @@
 #include "render_job.hpp"
 
 #include <iostream>
+#include <queue>
 
+#include "SDL_render.h"
+#include "SDL_video.h"
 #include "game/world.hpp"
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
+#include "util/debug.hpp"
 
 namespace rendering {
     SDL_Window* render_job::window() const {
@@ -14,7 +18,7 @@ namespace rendering {
     }
 
     void render_job::add_renderable(const std::shared_ptr<renderable>& renderable) {
-        _render_objects.emplace(renderable->id(), renderable);
+        _renderables.emplace(renderable->id(), renderable);
     }
 
     void render_job::init() {
@@ -28,19 +32,13 @@ namespace rendering {
             SDL_WINDOWPOS_UNDEFINED, 
             static_cast<int>(_window_size.x),
             static_cast<int>(_window_size.y), 
-            SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN
+            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN
         ));
         if (_window == nullptr)
             throw std::runtime_error("SDL_CreateWindow failed");
 
-        // Set mouse to not be visible over the window
-        SDL_ShowCursor(SDL_DISABLE);
-
-        // Make the window resizable
-        SDL_SetWindowResizable(_window.get(), SDL_TRUE);
-
         // Create renderer and check if it was created successfully
-        _renderer.reset(SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_ACCELERATED));
+        _renderer.reset(SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
         if (_renderer == nullptr)
             throw std::runtime_error("SDL_CreateRenderer failed");
     }
@@ -72,7 +70,7 @@ namespace rendering {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        for (const auto& renderable : _render_objects | std::views::values)
+        for (const auto& renderable : _renderables | std::views::values)
             renderable->render(renderer);
 
         SDL_RenderPresent(renderer);

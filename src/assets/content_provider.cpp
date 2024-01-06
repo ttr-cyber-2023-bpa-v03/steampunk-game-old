@@ -1,27 +1,15 @@
 #include "content_provider.hpp"
+#include <filesystem>
+#include "platform/current.hpp"
+#include "util/debug.hpp"
 
 namespace assets {
     content_provider::content_provider() {
         // Get directory of executable
-#   if defined(_WIN32)
-        std::string executable_path_str(MAX_PATH, '\0');
-        const auto program_path_len = GetModuleFileNameA(nullptr, executable_path_str.data(), MAX_PATH);
-        if (program_path_len == 0)
-            throw std::runtime_error("GetModuleFileNameA failed");
-        executable_path_str.resize(program_path_len);
-#   elif defined(__linux__)
-        std::string executable_path_str(PATH_MAX, '\0');
-        const auto program_path_len = readlink("/proc/self/exe", executable_path_str.data(), PATH_MAX);
-        if (program_path_len == -1)
-            throw std::runtime_error("readlink failed");
-        executable_path_str.resize(program_path_len);
-#   endif
-
-        // Set executable path
-        _executable_path = fs::path{ executable_path_str };
+        const fs::path exec_path{ platform::executable_path() };
 
         // Get assets directory then ensure it exists
-        _assets_path = _executable_path.parent_path() / "assets";
+        _assets_path = exec_path.parent_path() / "assets";
         if (!fs::exists(_assets_path)) {
             if (!fs::create_directory(_assets_path))
                 throw std::runtime_error("Failed to create assets directory");
@@ -50,23 +38,20 @@ namespace assets {
 
         auto font_path = _assets_path / "fonts" / relative_path;
         if (!fs::exists(font_path)) {
-#           if defined(_WIN32)
-            font_path = fs::path{ u8R"(C:\Windows\Fonts\)" } / relative_path;
-            if (!fs::exists(font_path))
-                throw std::runtime_error("Font does not exist");
-#           else
-                // Idk where linux fonts are so you'll just have to symlink or copy them
-                // I can implement this later but it's not a priority
+            // Idk where linux fonts are so you'll just have to symlink or copy them
+            // I can implement this later but it's not a priority
 
-                // Additionally, it might not be the best idea to just use the system fonts.
-                // That means we'd have to tell the user to install packages, which many
-                // users might not be comfortable with. I'll have to think about this.
+            // Additionally, it might not be the best idea to just use the system fonts.
+            // That means we'd have to tell the user to install packages, which many
+            // users might not be comfortable with. I'll have to think about this.
 
-                // For now, only the top if statement is in use.
-                // I'm on Linux and I just have fonts ready to go in the assets directory.
+            // For now, only the top if statement is in use.
+            // I'm on Linux and I just have fonts ready to go in the assets directory.
 
-                throw std::runtime_error("Font does not exist");
-#           endif
+            // Btw I just removed the windows code for this because I didn't find it
+            // useful.
+
+            throw std::runtime_error("Font does not exist");
         }
 
         const auto font = TTF_OpenFont(font_path.generic_string().c_str(), static_cast<int>(size));
@@ -79,7 +64,7 @@ namespace assets {
         // deallocate it. Super cool, super clean, super safe.
         std::shared_ptr<TTF_Font> ptr{ font, util::sdl_destroyer{} };
         _font_cache.emplace(key, ptr);
-
+        
         // Transfer ownership of the pointer from the callee to the caller
         return std::move(ptr); // NOLINT omg shut up clang-tidy IM TRANSFERRING OWNERSHIP OKAY?
     }

@@ -37,5 +37,13 @@ namespace game {
 
         // Set the maximum framerate of the game's scheduler
         void set_fps(int fps);
+
+        // Start the scheduler. Refer to sched::runner::start for more information.
+        void start(bool floating = false);
+
+        // Stop the scheduler, optionally deciding to only send a signal to the
+        // scheduler to stop, for use in jobs to prevent deadlocks. Refer to
+        // sched::runner::stop and sched::runner::signal_stop for more information.
+        void stop(bool signal_only = false);
     };
 }

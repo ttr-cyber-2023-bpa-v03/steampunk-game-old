@@ -6,12 +6,6 @@
 #include <unordered_map>
 #include <filesystem>
 
-#ifdef _WIN32
-#    define WIN32_LEAN_AND_MEAN
-#    include <Windows.h>
-#    undef WIN32_LEAN_AND_MEAN
-#endif
-
 #include "util/sdl_destroyer.hpp"
 
 #include <SDL_render.h>
@@ -23,8 +17,6 @@ namespace assets {
 
     class content_provider {
         static content_provider* _singleton;
-
-        fs::path _executable_path;
 
         fs::path _assets_path;
 

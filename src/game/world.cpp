@@ -5,6 +5,7 @@
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
 #include "rendering/render_job.hpp"
+#include <cerrno>
 
 namespace game {
     std::shared_ptr<world>& world::instance() {
@@ -25,10 +26,7 @@ namespace game {
 
         // Initialize the renderer
         render_job = std::make_shared<rendering::render_job>("Viewport", glm::vec2{800, 600 });
-        scheduler->schedule(render_job);
-
-        // Start the scheduler arbiter
-        scheduler->start(false);
+        write_job->schedule(render_job);
     }
 
     void world::set_fps(int fps) {
@@ -39,5 +37,16 @@ namespace game {
 
     int world::get_fps() {
         return static_cast<int>(1.0 / scheduler->frame_delay);
+    }
+
+    void world::start(bool floating) {
+        scheduler->start(floating);
+    }
+
+    void world::stop(bool signal_only) {
+        if (signal_only)
+            scheduler->signal_stop();
+        else
+            scheduler->stop();
     }
 }
