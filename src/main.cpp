@@ -28,6 +28,22 @@ public:
 };
 
 int main(int argc, char* argv[]) {
+	// Set up unhandled exception handling. A crash is not acceptable!
+	std::set_terminate([]() {
+        try {
+			// Propagate the exception to a try/catch block
+            std::rethrow_exception(std::current_exception());
+        } catch (...) {
+            // we l0g here
+			std::cout << "oh fuck" << std::endl;
+        }
+
+		// This is the desired "abnormal" exit point of the program.
+		// At this point, mitigating the error is not possible, so we exit and generate
+		// a core dump for debugging.
+        std::abort();
+    });
+
 	// Initialize the world
 	auto world = game::world::instance();
 

@@ -64,7 +64,7 @@ namespace assets {
         // deallocate it. Super cool, super clean, super safe.
         std::shared_ptr<TTF_Font> ptr{ font, util::sdl_destroyer{} };
         _font_cache.emplace(key, ptr);
-        
+
         // Transfer ownership of the pointer from the callee to the caller
         return std::move(ptr); // NOLINT omg shut up clang-tidy IM TRANSFERRING OWNERSHIP OKAY?
     }
