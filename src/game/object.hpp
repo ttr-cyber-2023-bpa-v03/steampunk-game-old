@@ -49,6 +49,6 @@ namespace game {
         }
 
         // Find first child of name in the children.
-        [[nodiscard]] object &find_child(const std::string_view name) const;
+        [[nodiscard]] object& find_child(const std::string_view name) const;
     };
 }

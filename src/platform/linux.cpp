@@ -1,3 +1,5 @@
+#include "SDL_messagebox.h"
+#include "logging/logger.hpp"
 #if defined (__linux__)
 
 #include "game/world.hpp"
@@ -24,6 +26,10 @@ namespace platform {
         return;
     }
 
+    // This is a workaround for the fact that std::signal does not support passing
+    // contextually relevant data to the callback function. If i could take a guess, it's
+    // because the callback is a C-style function pointer, and C doesn't know what a
+    // lambda is. At least this isn't cursed code.
     struct signal_dispatcher {
         static std::unordered_map<int, signal_handler> callbacks;
 
@@ -52,6 +58,17 @@ namespace platform {
         path_str.resize(path_len);
         
         return path_str;
+    }
+
+    void dump_and_exit() {
+        // Raise SIGABRT to generate a core dump
+        raise(SIGABRT);
+    }
+
+    void open_url(const std::string& url) {
+        // This is a bit cursed but it works...just please use xdg-open or handlr
+        logging::logger::send(logging::logger::level::info, "Opening URL: " + url);
+        std::system(std::string("xdg-open " + url).c_str());
     }
 }
 

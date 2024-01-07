@@ -24,7 +24,7 @@ namespace game {
         writer->enqueue([this, found] { _children.erase(found); });
     }
 
-    object &object::find_child(const std::string_view name) const {
+    object& object::find_child(const std::string_view name) const {
         const auto found = std::ranges::find_if(
             _children, [name](const auto &child) { return child->name() == name; });
 

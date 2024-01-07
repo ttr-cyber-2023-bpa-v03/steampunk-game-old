@@ -16,6 +16,10 @@ namespace platform {
     void on_close(signal_handler callback);
 
     std::string executable_path();
+
+    void dump_and_exit();
+
+    void open_url(const std::string& url);
 }
 
 #else
