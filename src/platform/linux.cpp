@@ -20,7 +20,7 @@ namespace platform {
     }
 
     void set_thread_affinity(std::thread& thread, const affinity_mask mask) {
-#   warning "Thread affinity is not implemented on Linux. Game may have reduced performance."
+#   pragma message ("Thread affinity is not implemented on Linux. Game may have reduced performance.")
         return;
     }
 
