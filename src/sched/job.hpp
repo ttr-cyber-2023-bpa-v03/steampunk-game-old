@@ -10,7 +10,7 @@ namespace sched {
     class worker;
 
     // Represents a task that can be executed by a worker
-    class job {
+    class job : public std::enable_shared_from_this<job> {
         // Pointer to the worker that this job is assigned to
         std::atomic<sched::worker*> _worker;
 
@@ -31,6 +31,11 @@ namespace sched {
     public:
         // Mutex for the children collection
         std::recursive_mutex job_mutex;
+
+        // Returns a shared pointer to this job.
+        std::shared_ptr<job> ref() {
+            return shared_from_this();
+        }
 
         // Run the task
         virtual void execute() = 0;

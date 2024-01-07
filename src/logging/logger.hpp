@@ -16,6 +16,16 @@ namespace logging {
         struct trace;
     }
 
+    enum class level : int {
+        debug,
+        info,
+        warning,
+        error,
+        fatal
+    };
+
+    // In an attempt to prevent bulk when using the logger, I made a bunch of static
+    // functions that access the singleton and
     class logger : public std::enable_shared_from_this<logger> {
         // Log path (if writing to a file)
         std::string _log_path = "";
@@ -30,14 +40,6 @@ namespace logging {
         void write_log(const std::string& message);
 
     public:
-        enum class level : int {
-            debug,
-            info,
-            warning,
-            error,
-            fatal
-        };
-
         static inline constexpr std::string_view level_to_string(const level log_level) {
             switch (log_level) {
                 case level::debug:
@@ -82,19 +84,17 @@ namespace logging {
         }
 
         // Intended for use with SG_TRACE
-        static void send(const level log_level,
-                         const macro_helpers::trace&& trace,
+        static void send(const macro_helpers::trace&& trace,
                          const std::string &message);
 
         // Intended for use with SG_TRACE
         template<typename... Args>
         static void send(
-            const level log_level,
             const macro_helpers::trace&& trace,
             const std::string_view message,
             Args&&... args
         ) {
-            send(log_level, std::move(trace), std::vformat(message, std::make_format_args(args...)));
+            send(std::move(trace), std::vformat(message, std::make_format_args(args...)));
         }
 
         // Get the log path

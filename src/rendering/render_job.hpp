@@ -41,6 +41,13 @@ namespace rendering {
 
 		[[nodiscard]] SDL_Window* window() const;
 
+		[[nodiscard]] SDL_Renderer* renderer() const;
+
+		// Auxiliary function to get the renderer, saves some typing
+		[[nodiscard]] SDL_Renderer* operator*() const {
+			return renderer();
+		}
+
 		void add_renderable(const std::shared_ptr<renderable>& renderable);
 
 		void execute() override;

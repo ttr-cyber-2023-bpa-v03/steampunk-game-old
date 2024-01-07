@@ -56,18 +56,17 @@ namespace logging {
         ss << "[" << level_to_string(log_level) << "] ";
 
         // The message, because logging nothing won't help anyone
-        ss << message << std::endl;
+        ss << message;
 
         // Write the message to the log
         logger_instance->write_log(ss.str());
     }
 
     void logger::send(
-        const level log_level,
         const macro_helpers::trace&& trace,
         const std::string& message
     ) {
-        send(log_level, std::format("{}: {}", trace.content, message));
+        send(level::debug, std::format("{}: {}", trace.content, message));
     }
 
     std::optional<std::string> logger::log_path() {

@@ -67,7 +67,7 @@ namespace platform {
 
     void open_url(const std::string& url) {
         // This is a bit cursed but it works...just please use xdg-open or handlr
-        logging::logger::send(logging::logger::level::info, "Opening URL: " + url);
+        logging::logger::send(logging::level::info, "Opening URL: " + url);
         std::system(std::string("xdg-open " + url).c_str());
     }
 }

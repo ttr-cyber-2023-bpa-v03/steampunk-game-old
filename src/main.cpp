@@ -8,8 +8,6 @@
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
 
-#include "util/debug.hpp"
-
 #include "rendering/render_job.hpp"
 #include "rendering/renderables/text_box.hpp"
 
@@ -17,6 +15,7 @@
 
 #include "logging/logger.hpp"
 #include "logging/macros.hpp"
+#include "util/uri_tools.hpp"
 #include <stdexcept>
 using logging::logger;
 
@@ -27,10 +26,21 @@ using logging::logger;
 #include <thread>
 
 class fps_reporter final : public sched::job {
+	std::shared_ptr<rendering::text_box> fps_box;
+
 public:
+	fps_reporter() {
+		fps_box = std::make_shared<rendering::text_box>();
+		fps_box->set_text("FPS: 0");
+		fps_box->set_font({ "Terminus.ttf", 32 });
+		fps_box->set_position({ 16, 16 });
+		fps_box->set_color({ 255, 255, 255, 255 });
+		game::world::instance()->render_job->add_renderable(fps_box);
+	}
+
 	void execute() override {
 		auto world = game::world::instance();
-		std::cout << "FPS: " << (int)(1.0 / world->scheduler->cycle_delta) << std::endl;
+		fps_box->set_text( "FPS: " + std::to_string((int)(1.0 / world->scheduler->cycle_delta)));
 	}
 };
 
@@ -41,11 +51,11 @@ void exception_filter() {
 	}
 	catch (std::exception& ex) {
 		// we l0g here
-		logger::send(logger::level::fatal, SG_TRACE, "Unhandled exception: ", ex.what());
+		logger::send(SG_TRACE, "Unhandled exception: ", ex.what());
     }
 	catch (...) {
 		// this is equivalent to "i wanna die"
-		logger::send(logger::level::fatal, "Unhandled exception: wow there is no exception");
+		logger::send(logging::level::fatal, "Unhandled exception: wow there is no exception");
 	}
 
 	// This is the desired "abnormal" exit point of the program, where we just dump the
@@ -56,7 +66,7 @@ void exception_filter() {
 	const std::string question = "Would you like to report this via email?";
 
 	// Make sure we note this in the log
-	logger::send(logger::level::fatal, msg);
+	logger::send(logging::level::fatal, msg);
 
 	// Show a message box so the app doesn't just disappear into the void
 	const std::string mb_text = msg + "\n" + question;
@@ -79,7 +89,7 @@ void exception_filter() {
 	int selected_button = 1; // default to 'no'
 	if (SDL_ShowMessageBox(&mb, &selected_button) < 0) {
 		// Well... we tried and failed. Obviously SDL hasn't initialized.
-		logger::send(logger::level::fatal, "SDL_ShowMessageBox failed: ", SDL_GetError());
+		logger::send(logging::level::error, "SDL_ShowMessageBox failed: ", SDL_GetError());
 	}
 
 	// The user wnats to report the issue
@@ -88,26 +98,19 @@ void exception_filter() {
 		const auto log_path = logger::log_path();
 		if (log_path.has_value()) {
 			// We can construct a mailto link with this path as the attachment
-			std::stringstream ss{};
-
-			// Add the email address (meh for now just take my email)
-			// Crude? Yes. Effective? Kinda. I'll fix later its 1 in the morning.
-			ss << "mailto";
-			ss << ":realnickk1@gmail.com";
-			ss << "?subject=steampunk-game%20-%20Crash%20Report";
-			ss << "&body=Please%20describe%20what%20you%20were%20doing%20when%20the%20crash%20occurred.%0D%0A";
-			ss << "Please%20attach%20the%20log%20file%20at%20" << log_path.value() << "%0D%0A";
-			ss << "We%20appreciate%20your%20help%20in%20making%20this%20game%20better!";
-
-			// Open the link in the default browser
-			platform::open_url(ss.str());
+			util::mailto mail{ 
+				"realnickk1@gmail.com", 
+				"steampunk-game - Crash Report",
+				"Please describe what you were doing when the crash occurred:\n\nIf you can, please attach the log file to this email, which is located at " + log_path.value() + "."
+			};
+			mail.open();
 		}
 		else {
 			// Ok you're writing logs to the console. I guess we can't do anything about
 			// that. If you are writing logs to the console then you should already know
 			// what you're doing because you got a custom build of the game.
 			logger::send(
-				logger::level::fatal, 
+				logging::level::error, 
 				"Cannot send crash report: Log path is not set."
 			);
 		}
@@ -118,11 +121,10 @@ void exception_filter() {
 
 int main(int argc, char* argv[]) {
 	// Initialize our amazing logging system.
-	logger::init(false);
+	logger::init(true);
 
 	// Set up unhandled exception handling. A crash is not acceptable!
 	std::set_terminate(exception_filter);
-	throw std::runtime_error("test");
 
 	// Initialize the world
 	auto world = game::world::instance();
@@ -136,13 +138,6 @@ int main(int argc, char* argv[]) {
 		// it will cause a hang
 		world->stop();
 	});
-
-	// Create a test object
-	auto text = std::make_shared<rendering::text_box>();
-	text->set_font("Terminus.ttf", 64);
-	text->set_text("usb dongle simulator 0.1");
-	text->position = { 0, 0 };
-	world->render_job->add_renderable(text);
 
 	// Start the scheduler, which will also block this thread until the scheduler is
 	// gracefully stopped

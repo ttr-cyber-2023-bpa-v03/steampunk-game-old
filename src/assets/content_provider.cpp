@@ -1,9 +1,10 @@
 #include "content_provider.hpp"
 #include <filesystem>
 #include "platform/current.hpp"
-#include "util/debug.hpp"
 
 namespace assets {
+    namespace fs = std::filesystem;
+
     content_provider::content_provider() {
         // Get directory of executable
         const fs::path exec_path{ platform::executable_path() };
@@ -24,15 +25,16 @@ namespace assets {
         TTF_Quit();
     }
 
-    content_provider* content_provider::_singleton{};
+    
     content_provider* content_provider::get() {
-        if (_singleton == nullptr)
-            _singleton = new content_provider{};
-        return _singleton;
+        static std::shared_ptr<content_provider> singleton{};
+        if (singleton == nullptr)
+            singleton = std::make_shared<content_provider>();
+        return singleton.get();
     }
 
     std::shared_ptr<TTF_Font> content_provider::get_font(const std::string& relative_path, const std::uint32_t size) {
-        const auto key = _get_font_key(relative_path, size);
+        const auto key = get_font_key(relative_path, size);
         if (_font_cache.contains(key))
             return _font_cache[key].lock();
 
