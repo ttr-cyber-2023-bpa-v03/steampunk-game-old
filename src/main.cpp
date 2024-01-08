@@ -22,25 +22,6 @@
 #include <memory>
 #include <thread>
 
-class fps_reporter final : public sched::job {
-	std::shared_ptr<rendering::text_box> fps_box;
-
-public:
-	fps_reporter() {
-		fps_box = std::make_shared<rendering::text_box>();
-		fps_box->set_text("FPS: 0");
-		fps_box->set_font({ "Terminus.ttf", 32 });
-		fps_box->set_position({ 16, 16 });
-		fps_box->set_color({ 255, 255, 255, 255 });
-		game::world::instance()->render_job->add_renderable(fps_box);
-	}
-
-	void execute() override {
-		auto world = game::world::instance();
-		fps_box->set_text( "FPS: " + std::to_string((int)(1.0 / world->scheduler->cycle_delta)));
-	}
-};
-
 void exception_filter() {
 	const std::string msg = "An unhandled exception has occurred. The program will now exit.";
 	const std::string question = "Would you like to report this via email?";
@@ -123,9 +104,6 @@ int main(int argc, char* argv[]) {
 
 	// Initialize the world
 	auto world = game::world::instance();
-
-	// FPS reporting (this is primarily for debugging)
-	world->scheduler->schedule(std::make_shared<fps_reporter>());
 
 	platform::on_close([world](int signal) {
 		// Signal a scheduler stop and hope for the best
