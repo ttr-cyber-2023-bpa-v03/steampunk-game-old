@@ -40,9 +40,4 @@ namespace util {
 
         return ss.str();
     }
-
-    void mailto::open() const {
-        // Open the mailto link
-        platform::open_url(to_string());
-    }
 }

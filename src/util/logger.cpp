@@ -1,5 +1,4 @@
 #include "logger.hpp"
-#include "macros.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -7,15 +6,16 @@
 #include <thread>
 #include "platform/current.hpp"
 
-namespace logging {
+namespace util {
     namespace fs = std::filesystem;
 
-    static std::shared_ptr<logger> logger_instance;
-    void logger::init(bool console) {
-        logger_instance = std::make_shared<logger>(console);
+    static std::shared_ptr<log> logger_instance{};
+
+    void log::init(bool console) {
+        logger_instance = std::make_shared<log>(console);
     }
 
-    logger::logger(bool console) {
+    log::log(bool console) {
         if (console) {
             // Redirect the log to the console
             _log = std::make_unique<std::ostream>(std::cout.rdbuf());
@@ -37,12 +37,18 @@ namespace logging {
         }
     }
 
-    void logger::write_log(const std::string& message) {
+    void log::write_log(const std::string& message) {
+        // Handle non-init. Write to console as a last ditch effort.
+        if (logger_instance == nullptr) {
+            std::cerr << "[NON-INIT] " << message << std::endl;
+            return;
+        }
+
         std::lock_guard<std::mutex> lock{ _mutex };
         *_log << message << std::endl;
     }
 
-    void logger::send(const level log_level, const std::string& message) {
+    void log::send(const log_level log_level, const std::string& message) {
         std::stringstream ss;
 
         // Thread ID, good for debugging scheduler jobs
@@ -62,14 +68,18 @@ namespace logging {
         logger_instance->write_log(ss.str());
     }
 
-    void logger::send(
+    void log::send(
         const macro_helpers::trace&& trace,
         const std::string& message
     ) {
-        send(level::debug, std::format("{}: {}", trace.content, message));
+        send(log_level::debug, std::format("{}: {}", trace.content, message));
     }
 
-    std::optional<std::string> logger::log_path() {
+    std::optional<std::string> log::log_path() {
+        // Handle non-init
+        if (logger_instance == nullptr) 
+            return std::nullopt;
+
         auto log_path = logger_instance->_log_path;
         return log_path == "" ? std::nullopt : std::make_optional(log_path);
     }

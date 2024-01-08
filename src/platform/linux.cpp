@@ -1,5 +1,5 @@
 #include "SDL_messagebox.h"
-#include "logging/logger.hpp"
+#include "util/logger.hpp"
 #if defined (__linux__)
 
 #include "game/world.hpp"
@@ -67,7 +67,7 @@ namespace platform {
 
     void open_url(const std::string& url) {
         // This is a bit cursed but it works...just please use xdg-open or handlr
-        logging::logger::send(logging::level::info, "Opening URL: " + url);
+        util::log::send(util::log_level::info, "Opening URL: " + url);
         std::system(std::string("xdg-open " + url).c_str());
     }
 }

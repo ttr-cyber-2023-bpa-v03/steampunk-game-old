@@ -34,6 +34,9 @@ namespace rendering {
     }
 
     void text_box::render(const render_job& rj) {
+        _color = hsv2rgb(h += 0.001f, 1.0f, 1.0f);
+        if (h > 1.0f)
+            h = 0.0f;
         SDL_RenderCopy(*rj, _texture.get(), nullptr, &_rect);
     }
 }

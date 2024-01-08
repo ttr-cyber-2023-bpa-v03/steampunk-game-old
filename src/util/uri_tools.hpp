@@ -23,7 +23,5 @@ namespace util {
         ) : email(email), subject(subject), body(body) {};
 
         std::string to_string() const;
-
-        void open() const;
     };
 }

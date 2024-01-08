@@ -6,8 +6,7 @@
 #include "SDL_render.h"
 #include "SDL_video.h"
 #include "game/world.hpp"
-#include "logging/logger.hpp"
-#include "logging/macros.hpp"
+#include "util/logger.hpp"
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
 
@@ -45,7 +44,7 @@ namespace rendering {
             throw std::runtime_error("SDL_CreateWindow failed");
 
         // Create renderer and check if it was created successfully
-        _renderer.reset(SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+        _renderer.reset(SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_ACCELERATED));
         if (_renderer == nullptr)
             throw std::runtime_error("SDL_CreateRenderer failed");
     }

@@ -3,7 +3,6 @@
 #include "game/world.hpp"
 #include "game/write_job.hpp"
 
-#include "platform/linux.hpp"
 #include "sched/job.hpp"
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
@@ -13,12 +12,10 @@
 
 #include "platform/current.hpp"
 
-#include "logging/logger.hpp"
-#include "logging/macros.hpp"
 #include "util/uri_tools.hpp"
-#include <stdexcept>
-using logging::logger;
+#include "util/logger.hpp"
 
+#include <stdexcept>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
@@ -45,86 +42,84 @@ public:
 };
 
 void exception_filter() {
+	const std::string msg = "An unhandled exception has occurred. The program will now exit.";
+	const std::string question = "Would you like to report this via email?";
+
+	// Make sure we note the main message in the log
+	util::log::send(util::log_level::fatal, msg);
+
+	// Determine what the exception is
 	try {
 		// Propagate the exception to a try/catch block
         std::rethrow_exception(std::current_exception());
 	}
 	catch (std::exception& ex) {
-		// we l0g here
-		logger::send(SG_TRACE, "Unhandled exception: ", ex.what());
+		// Log what the exception says
+		util::log::send(util::log_level::error, "Unhandled exception: {}", ex.what());
     }
 	catch (...) {
-		// this is equivalent to "i wanna die"
-		logger::send(logging::level::fatal, "Unhandled exception: wow there is no exception");
+		// If anything gets thrown that isn't an exception, we will just log it
+		util::log::send(util::log_level::error, "Unhandled exception: Unknown");
 	}
 
-	// This is the desired "abnormal" exit point of the program, where we just dump the
-	// memory and call it a day. The user can then decide if they want to report the
-	// issue, ignore it, or dig into it themselves and make a PR (please im begging you).
+	// Show a message box so the app doesn't just disappear into the void, defaulting to
+	// 'No' if the message box fails to show
+	auto next_action = 1; // mb_btns[1]
+	{
+		const std::string mb_text = msg + "\n" + question;
 
-	const std::string msg = "An unhandled exception has occurred. The program will now exit.";
-	const std::string question = "Would you like to report this via email?";
+		const SDL_MessageBoxButtonData mb_btns[] = {
+			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Yes" },
+			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "No" },
+		};
 
-	// Make sure we note this in the log
-	logger::send(logging::level::fatal, msg);
+		SDL_MessageBoxData mb{
+			SDL_MESSAGEBOX_ERROR,
+			nullptr,
+			"Fatal Error",
+			mb_text.c_str(),
+			sizeof(mb_btns) / sizeof(mb_btns[0]), // number of buttons
+			mb_btns,
+			nullptr,
+		};
 
-	// Show a message box so the app doesn't just disappear into the void
-	const std::string mb_text = msg + "\n" + question;
-
-	const SDL_MessageBoxButtonData buttons[] = {
-		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Yes" },
-		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "No" },
-	};
-
-    SDL_MessageBoxData mb{
-		SDL_MESSAGEBOX_ERROR,
-		nullptr,
-		"Fatal Error",
-		mb_text.c_str(),
-		sizeof(buttons) / sizeof(buttons[0]), // number of buttons
-		buttons,
-		nullptr,
-	};
-
-	int selected_button = 1; // default to 'no'
-	if (SDL_ShowMessageBox(&mb, &selected_button) < 0) {
-		// Well... we tried and failed. Obviously SDL hasn't initialized.
-		logger::send(logging::level::error, "SDL_ShowMessageBox failed: ", SDL_GetError());
+		// If the message box fails to show, we will just log and continue
+		if (SDL_ShowMessageBox(&mb, &next_action) < 0)
+			util::log::send(util::log_level::error, "SDL_ShowMessageBox failed: ", SDL_GetError());
 	}
 
-	// The user wnats to report the issue
-	if (selected_button == 0) {
-		// Damn... alright so we need to get the log path
-		const auto log_path = logger::log_path();
+	// The user wants to report the issue. We will construct a mailto link and open it
+	if (next_action == 0) {
+		// Construct the body of the email
+		std::stringstream body{};
+		body << "Please describe what you were doing when the crash occurred:\n\n";
+
+		auto log_path = util::log::log_path();
 		if (log_path.has_value()) {
-			// We can construct a mailto link with this path as the attachment
-			util::mailto mail{ 
-				"realnickk1@gmail.com", 
-				"steampunk-game - Crash Report",
-				"Please describe what you were doing when the crash occurred:\n\nIf you can, please attach the log file to this email, which is located at " + log_path.value() + "."
-			};
-			mail.open();
+			// There is a log file, but we can't attach it using a mailto link from the
+			// research I have done.
+			body << "Please attach the log file to this email. It is located at " << log_path.value();
 		}
-		else {
-			// Ok you're writing logs to the console. I guess we can't do anything about
-			// that. If you are writing logs to the console then you should already know
-			// what you're doing because you got a custom build of the game.
-			logger::send(
-				logging::level::error, 
-				"Cannot send crash report: Log path is not set."
-			);
-		}
+
+		// Construct the mailto link and open it
+		util::mailto mail{ 
+			"realnickk1@gmail.com", // Just going to use my dev email for now
+			"steampunk-game - Crash Report",
+			body.str()
+		};
+		platform::open_url(mail.to_string());
 	}
 
+	// Dump the memory and exit. Ripperoni.
 	platform::dump_and_exit();
 }
 
 int main(int argc, char* argv[]) {
-	// Initialize our amazing logging system.
-	logger::init(true);
-
-	// Set up unhandled exception handling. A crash is not acceptable!
+	// This will handle sneaky exceptions.
 	std::set_terminate(exception_filter);
+
+	// Initialize the log system, and write to console if we are in debug mode
+	util::log::init(true);
 
 	// Initialize the world
 	auto world = game::world::instance();
@@ -141,9 +136,10 @@ int main(int argc, char* argv[]) {
 
 	// Start the scheduler, which will also block this thread until the scheduler is
 	// gracefully stopped
-	world->set_fps(144);
+	world->set_fps(0);
 	world->start();
 
 	// This is the desired "normal" exit point of the program.
+	SDL_Quit();
 	return 0;
 }

@@ -84,8 +84,9 @@ namespace sched {
 
         ~runner();
 
-        // The amount of time a frame should last
-        std::atomic<double> frame_delay{ 1.0L / 60 };
+        // The amount of time a frame should last. Zero means that the scheduler should
+        // attempt to match the refresh rate of the monitor.
+        std::atomic<double> frame_delay{};
 
         // The time delta between two cycles
         std::atomic<double> cycle_delta{};

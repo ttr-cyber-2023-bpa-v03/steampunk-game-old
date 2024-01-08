@@ -5,6 +5,7 @@
 #include <random>
 #include <ranges>
 
+#include "SDL_video.h"
 #include "worker.hpp"
 #include "job.hpp"
 

@@ -10,13 +10,13 @@
 #include <string>
 #include <thread>
 
-namespace logging {
+namespace util {
     namespace macro_helpers {
         // Forward declaration
         struct trace;
     }
 
-    enum class level : int {
+    enum class log_level : int {
         debug,
         info,
         warning,
@@ -26,7 +26,7 @@ namespace logging {
 
     // In an attempt to prevent bulk when using the logger, I made a bunch of static
     // functions that access the singleton and
-    class logger : public std::enable_shared_from_this<logger> {
+    class log : public std::enable_shared_from_this<log> {
         // Log path (if writing to a file)
         std::string _log_path = "";
 
@@ -40,17 +40,17 @@ namespace logging {
         void write_log(const std::string& message);
 
     public:
-        static inline constexpr std::string_view level_to_string(const level log_level) {
+        static inline constexpr std::string_view level_to_string(const log_level log_level) {
             switch (log_level) {
-                case level::debug:
+                case log_level::debug:
                     return "DEBUG";
-                case level::info:
+                case log_level::info:
                     return "INFO";
-                case level::warning:
+                case log_level::warning:
                     return "WARNING";
-                case level::error:
+                case log_level::error:
                     return "ERROR";
-                case level::fatal:
+                case log_level::fatal:
                     return "FATAL";
                 default:
                     return "???";
@@ -58,25 +58,25 @@ namespace logging {
         }
 
         // Returns the singleton instance of the world
-        static std::shared_ptr<logger>& instance();
+        static std::shared_ptr<log>& instance();
 
         // Initialize the logger.
         static void init(bool console = false);
 
         // Returns a shared pointer to this class.
-        std::shared_ptr<logger> ref() {
+        std::shared_ptr<log> ref() {
             return shared_from_this();
         }
 
-        logger(bool console);
+        log(bool console);
 
         // Send a generic message to the log.
-        static void send(const level log_level, const std::string& message);
+        static void send(const log_level log_level, const std::string& message);
 
         // Send a generic message to the log with formatting.
         template<typename... Args>
         static void send(
-            const level log_level,
+            const log_level log_level,
             const std::string_view message,
             Args&&... args
         ) {
@@ -100,4 +100,29 @@ namespace logging {
         // Get the log path
         [[nodiscard]] static std::optional<std::string> log_path();
     };
-}
+} // namespace util
+
+namespace util::macro_helpers {
+    struct trace {
+        std::string content;
+    };
+
+    // Generates a trace string from the function name, file name, and line number.
+    inline trace generate_trace(
+        const std::string func_name, 
+        const std::string_view file_path,
+        const int line
+    ) {
+        return { func_name + " @ " + std::string(file_path) + ':'
+            + std::to_string(line) };
+    }
+} // namespace util::macro_helpers
+
+// Used to generate a static trace of where a log message came from.
+// Example: SG_TRACE => "void game::world::start() @ 42:world.cpp"
+#define SG_TRACE ::util::macro_helpers::generate_trace( \
+    __func__,                                           \
+    __FILE__,                                           \
+    __LINE__                                            \
+)
+
