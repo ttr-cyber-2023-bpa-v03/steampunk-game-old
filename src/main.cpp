@@ -124,6 +124,10 @@ int main(int argc, char* argv[]) {
 	// Initialize the world
 	auto world = game::world::instance();
 
+	world->key_down->connect([](char key) {
+		util::log::send(util::log_level::info, "Key pressed: {}", key);
+	});
+
 	// FPS reporting (this is primarily for debugging)
 	world->scheduler->schedule(std::make_shared<fps_reporter>());
 

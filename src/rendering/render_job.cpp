@@ -60,7 +60,7 @@ namespace rendering {
                 game::world::instance()->scheduler->signal_stop();
                 break;
             case SDL_KEYDOWN:
-                // Handle keydown event
+                game::world::instance()->key_down->fire(event.key.keysym.sym);
                 break;
             default:
                 // Handle other events

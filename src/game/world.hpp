@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "object.hpp"
+#include "event.hpp"
 
 // Forward declarations
 namespace sched {
@@ -17,6 +18,7 @@ namespace rendering {
 namespace game {
     // Forward declarations
     class write_job;
+    class event_pump;
 
     // The root object of the entire game
     class world : public object {
@@ -26,6 +28,10 @@ namespace game {
         std::shared_ptr<game::write_job> write_job;
 
         std::shared_ptr<rendering::render_job> render_job;
+
+        std::shared_ptr<game::event_pump> event_pump;
+
+        std::shared_ptr<game::event<char>> key_down = std::make_shared<game::event<char>>();
 
         // Returns the singleton instance of the world
         static std::shared_ptr<world>& instance();

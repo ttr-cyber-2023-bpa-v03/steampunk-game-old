@@ -7,6 +7,7 @@
 
 #include "sched/runner.hpp"
 #include "sched/worker.hpp"
+#include "event_pump.hpp"
 #include "rendering/render_job.hpp"
 #include <cerrno>
 
@@ -26,6 +27,10 @@ namespace game {
         // Initialize the write job and schedule it
         write_job = std::make_shared<game::write_job>();
         scheduler->schedule(write_job);
+
+        // Initialize the event pump and schedule it
+        event_pump = std::make_shared<game::event_pump>();
+        scheduler->schedule(event_pump);
 
         // Initialize the renderer
         render_job = std::make_shared<rendering::render_job>("Viewport", glm::vec2{800, 600 });
