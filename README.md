@@ -1,6 +1,6 @@
 # steampunk-game
 
-An over-engineered RTS steampunk game written in C++ and SDL2.
+An over-engineered RTS victorian-steampunk game written in C++ and SDL2.
 
 ## Building
 
