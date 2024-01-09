@@ -16,6 +16,8 @@
 
 namespace platform {
     void set_thread_affinity(std::thread& thread, const affinity_mask mask) {
+        // oh yeah jit go brrr and crash so i commented this out
+        
         // Linux uses the same concept but they have to be different and use a struct for
         // some reason, so we just do a cast.
 
@@ -39,8 +41,6 @@ namespace platform {
         //affinity_mask max_mask = 0xFFFFFFFFFFFFFFFF;
         //auto max_set = *reinterpret_cast<cpu_set_t*>(&max_mask);
         //sched_setaffinity(getpid(), sizeof(cpu_set_t), &max_set);*/
-
-        
     }
 
     // This is a workaround for the fact that std::signal does not support passing
