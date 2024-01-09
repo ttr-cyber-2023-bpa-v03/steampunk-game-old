@@ -1,5 +1,8 @@
-#include "SDL_messagebox.h"
+#include "iostream"
 #include "util/logger.hpp"
+#include <bitset>
+#include <list>
+#include <pthread.h>
 #if defined (__linux__)
 
 #include "game/world.hpp"
@@ -7,23 +10,37 @@
 
 #include "linux.hpp"
 #include <sched.h>
+#include <list>
 #include <csignal>
 #include <unordered_map>
 
 namespace platform {
-    // Convert an affinity mask into a cpu_set_t structure which is what Linux
-    // understands internally
-    void affinity_mask_to_cpu_set(const affinity_mask mask, cpu_set_t& set) {
-        CPU_ZERO(&set);
-        for (int i = 0; i < sizeof(affinity_mask) * 8; i++) {
-            if (mask & (1 << i))
-                CPU_SET(i, &set);
-        }
-    }
-
     void set_thread_affinity(std::thread& thread, const affinity_mask mask) {
-#   pragma message ("Thread affinity is not implemented on Linux. Game may have reduced performance.")
-        return;
+        // Linux uses the same concept but they have to be different and use a struct for
+        // some reason, so we just do a cast.
+
+        /*std::cout << "set: " << std::setfill('0') << std::setw(4) << std::hex << mask << std::endl;
+
+        cpu_set_t set_th;
+
+        CPU_ZERO(&set_th);
+        pthread_getaffinity_np(thread.native_handle(), sizeof(cpu_set_t), &set_th);
+        std::cout << "old: " << std::setfill('0') << std::setw(4) << std::hex << *reinterpret_cast<std::uintptr_t*>(&set_th) << std::endl;
+
+        const auto set = *reinterpret_cast<const cpu_set_t*>(&mask);
+        if (pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set_t), &set) != 0)
+            throw std::runtime_error("Failed to set thread affinity");
+
+        CPU_ZERO(&set_th);
+        pthread_getaffinity_np(thread.native_handle(), sizeof(cpu_set_t), &set_th);
+        std::cout << "new: " << std::setfill('0') << std::setw(4) << std::hex << *reinterpret_cast<std::uintptr_t*>(&set_th) << std::endl;
+
+        // uh make sure the process can actually use the cores
+        //affinity_mask max_mask = 0xFFFFFFFFFFFFFFFF;
+        //auto max_set = *reinterpret_cast<cpu_set_t*>(&max_mask);
+        //sched_setaffinity(getpid(), sizeof(cpu_set_t), &max_set);*/
+
+        
     }
 
     // This is a workaround for the fact that std::signal does not support passing
