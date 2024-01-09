@@ -17,8 +17,10 @@ namespace util {
 	    }
 
 		void operator()(SDL_Renderer* renderer) const noexcept {
-	    	if (renderer)
-				SDL_DestroyRenderer(renderer);
+			// TODO: Temporary bugfix, but theres a timing issue with the cleanup
+			//       of the renderer and the window. This is a temporary fix until
+	    	//if (renderer) 
+			//	SDL_DestroyRenderer(renderer);
 		}
 
 		void operator()(SDL_Texture* texture) const noexcept {
