@@ -95,21 +95,17 @@ void exception_filter() {
 	platform::dump_and_exit();
 }
 
-int main(int argc, char* argv[]) {
-	// This will handle sneaky exceptions.
-	std::set_terminate(exception_filter);
-
-	// Initialize the log system, and write to console if we are in debug mode
-	util::log::init(true);
-
-	// Initialize the world
+void init_world() {
 	auto world = game::world::instance();
 
+	// If we get an interrupt signal, we will stop the scheduler to allow for a graceful
+	// shutdown of the game
 	platform::on_close([world](int signal) {
 		// Signal a scheduler stop and hope for the best
 		// 9/10 times this will work perfectly fine but if you have a long running job
 		// it will cause a hang
-		world->stop();
+		util::log::send(util::log_level::info, "Interrupt received");
+		world->stop(true);
 	});
 
 	// Start the scheduler, which will also block this thread until the scheduler is
@@ -117,7 +113,23 @@ int main(int argc, char* argv[]) {
 	world->set_fps(0);
 	world->start();
 
-	// This is the desired "normal" exit point of the program.
+	// If we get here, the scheduler has been stopped (potentially by an interrupt signal)
+	// and we can safely exit
+	util::log::send(util::log_level::info, "Scheduler stop");
+}
+
+int main(int argc, char* argv[]) {
+	// This will handle sneaky exceptions.
+	std::set_terminate(exception_filter);
+
+	// Initialize the log system, and write to console if we are in debug mode
+	util::log::init(true);
+
+	init_world();
+
+	// This is the desired "normal" exit point of the program. Here, we clean up whatever
+	// may be left over and exit.
 	SDL_Quit();
+
 	return 0;
 }
