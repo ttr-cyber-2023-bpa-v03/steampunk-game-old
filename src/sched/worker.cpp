@@ -74,7 +74,7 @@ namespace sched {
         _thread = std::thread{ &worker::worker_main, this };
         
         // Set the thread's affinity, allowing the OS to schedule it on specific cores
-        // If affinity is zero, the OS will schedule it on any core
+        // If affinity is zero, the OS will handle affinity automatically
         if (affinity != 0)
             platform::set_thread_affinity(_thread, affinity);
 
@@ -83,8 +83,8 @@ namespace sched {
     }
 
     worker::~worker() {
-        // Join the thread to ensure that it can stop
-        // and properly destroy itself
+        // Join the thread to ensure that it can properly
+        // destroy itself if not started
         if (_thread.joinable())
             _thread.join();
 
